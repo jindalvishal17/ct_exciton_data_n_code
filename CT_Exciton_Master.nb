@@ -1,0 +1,78 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook ***)
+(* CreatedBy='Generated companion notebook' *)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell["P3HT / O-IDTBR Charge-Transfer Exciton Model", "Title"],
+
+Cell["Companion code for: Jindal, Janik & Milner, \"First-Principles Modeling of Interfacial Charge Transfer Exciton States in Organic Solar Cells\" (JCTC).", "Subtitle"],
+
+Cell["Overview", "Section"],
+
+Cell["This notebook orchestrates the full calculation of charge-transfer (CT) exciton energies at a P3HT / O-IDTBR donor-acceptor interface, using a tight-binding model parameterized from DFT and applied to close-contact geometries taken from a molecular dynamics trajectory.
+
+The total CT exciton energy is E_CT = E_K + E_C + E_P, i.e. the one-body kinetic energy of the delocalized electron and hole (E_K), the electron-hole Coulomb interaction (E_C), and the dielectric polarization stabilization (E_P) (Eq. 2 and Eq. 12 of the paper).
+
+Each step below loads one commented Wolfram Language module from the src/ directory. Evaluate the cells in order. Required input data must be present in data/ (see DATA_MANIFEST.md).", "Text"],
+
+Cell["How to run", "Section"],
+
+Cell["1. Place the input data files in the data/ directory (see DATA_MANIFEST.md).
+2. Evaluate the 'Setup' cell to set the working directory to this notebook's folder.
+3. Evaluate each module cell in order (00 through 09). The final module, 09, produces the CT exciton energies and the decomposition used for Figures 8-13 and Table 3.
+Note: module 09 minimizes the exciton energy for all 237 contacts and may take several minutes.", "Text"],
+
+Cell["Setup", "Section"],
+
+Cell[CellGroupData[{
+Cell[BoxData[RowBox[{"SetDirectory", "[", "NotebookDirectory", "[", "]", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"rootDir", " ", "=", " ", "NotebookDirectory", "[", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"dataDir", " ", "=", " ", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"data\"", "}", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"resultsDir", " ", "=", " ", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"results\"", "}", "]"}]], "Input"]
+}, Open]],
+
+Cell["Workflow modules (evaluate in order)", "Section"],
+
+Cell[CellGroupData[{
+Cell["Configuration & physical constants (paths, eps, eFac, fac).", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"00_config.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Import the MD frame (npt.gro): box, P3HT & IDTBR atoms.", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"01_import_configuration.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Ring centres and the 237 BT-thiophene close contacts.", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"02_ring_centers_close_contacts.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Smeared (Gaussian) 14x14 Coulomb kernel (Eq. 6-7).", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"03_coulomb_interaction_matrix.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Interchain hopping t_ab from the ML model (Fig. 6).", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"04_interchain_hopping_ML.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Intrachain hopping from DFT dimer energies (Figs. 4-5).", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"05_intrachain_hopping_DFT.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Assemble onsite, hopping & Coulomb parameters (Tables 1-2).", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"06_gather_parameters.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Polaron states as initial guesses for the CT minimization.", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"07_polaron_initial_condition.wl\"", "}", "]", "]"}]], "Input"],
+Cell["14x14 CT-exciton tight-binding Hamiltonian (Eq. 4).", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"08_hamiltonian_matrix.wl\"", "}", "]", "]"}]], "Input"],
+Cell["Total E_CT = E_K + E_C + E_P (Eq. 12), decomposition & analysis (Figs. 8-13, Table 3).", "Text"],
+Cell[BoxData[RowBox[{"Get", "[", "FileNameJoin", "[", "{", "rootDir", ",", " ", "\"src\"", ",", " ", "\"09_ct_exciton_energy_analysis.wl\"", "}", "]", "]"}]], "Input"]
+}, Open]],
+
+Cell["Key outputs", "Section"],
+
+Cell["After running all modules the following symbols hold the main results:
+  ExcitonEnergies2  - CT exciton energy for each contact (Fig. 9)
+  ExcitonEnergies3  - IDTBR-localized exciton energy for each contact (Fig. 8)
+  results           - per-contact {E_CT, E_C+E_P, E_K, E_C, E_P, E_Ke, E_Kh, psiE, psiH}
+  keepIdx / RemoveIds - main population vs. outlier indices (Table 3)
+  table3Main / table3Outliers - mean Coulomb / polarization energies (Table 3)
+  lm2 / residuals2   - refined E_CT vs E_1b linear fit (Fig. 11)", "Text"]
+
+},
+ WindowSize->{900, 800},
+ WindowMargins->{Automatic, Automatic},
+ WindowFrame->Normal,
+ StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
